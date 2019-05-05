@@ -2,6 +2,7 @@
   <?php require('../classes/functions.php');?>
   <?php
   sessionCheck();
+
   ?>
 
   <!DOCTYPE html>
@@ -332,11 +333,19 @@
                           <hr>
                           <div class="form-group row">
                             <div class="col-sm-6 mb-3 mb-sm-0">
-                              <input type="text" class="form-control form-control-user" name="id" placeholder="Owner's ID" required="required">
+                              <input type="text" class="form-control form-control-user" name="id" placeholder="National Identity" required="required">
                             </div>
                             <div class="col-sm-6">
-                              <input type="text" class="form-control form-control-user" name="propertyOwned" placeholder="Property Owned" required="required">
+                              <select class="form-control" name="propertyOwned">
+                                <option selected>Choose Property Type</option>
+                                <option>Self contained</option>
+                                <option>Houses</option>
+                                <option>Apartments</option>
+                              </select>
                             </div>
+                            <!--div class="col-sm-6">
+                              <input type="text" class="form-control form-control-user" name="propertyOwned" placeholder="Property Owned" required="required">
+                            </div-->
                           </div>
                           <hr>
                           <div class="form-group row">
@@ -437,17 +446,24 @@
                         </div>
                         <hr>
                         <div class="form-group row">
-                          <!--div class="col-sm-6">
-                            <select class="btn-light.dropdown-toggle" style="width: 150px"; id="input_5" name="q5_listOf">
-                              <?php //drpProp(); ?>
+                          <div class="col-sm-6">
+                            <select class="form-control" id="propDrop" name="propertyno">
+                              <option>select property number</option>
+                              <?php drpProp(); ?>
                             </select>
-                          </div-->
+                          </div>
                           <div class="col-sm-6">
+                            <select class="form-control" id="hseDrop" name="houseno">
+                              <option>select room number</option>
+                              <?php dropHse(); ?>
+                            </select>
+                          </div>
+                          <!--div class="col-sm-6">
                             <input type="text" class="form-control form-control-user" name="propertyno" placeholder="Property Number" required="required">
-                          </div>
-                          <div class="col-sm-6">
+                          </div-->
+                          <!--div class="col-sm-6">
                             <input type="text" class="form-control form-control-user" name="houseno" placeholder="House Number" required="required">
-                          </div>
+                          </div-->
                         </div>
                         <hr>
                         <div class="col-xs-6 col-md-6">
@@ -835,6 +851,26 @@
         });
       });
     </script>
+
+    <!-- house drop down controll-->
+    <script>
+      $("#propDrop").change(function(){
+        var selectRoom = 
+        $(this).children("option:selected").val();
+         $.post("php/displayRooms.php",
+        {
+          propertyID: selectRoom,
+        },
+        function(data, status){
+          $("#hseDrop").html(data);
+        });
+      }
+
+        )
+    </script>
+
+
+
     <!--edit and update for tenants-->
     <script>
       function editTenants(tenid, fTname, lTname, identity, contacts, plotno, hseno, payment_status){

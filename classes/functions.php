@@ -64,6 +64,7 @@ if (isset($_POST['addowners'])) {
 
     if (mysqli_query($conn, $query)) {
          echo "Property owner addition requested. Wait for admin approval!";
+         //header("Refresh:2");
       } else {
          echo "Error: " . $query . "" . mysqli_error($conn);  
       }
@@ -91,13 +92,22 @@ if(isset($_POST['addtenant'])){
   if(isset($_SESSION["staffID"])){
   $logged_in_user_id = $_SESSION["staffID"];
 
-  $query = "call insertTenant('$logged_in_user_id','$firstname','$lastname','$nationalid','$contacts','$propertyno','$houseno')";
+  $roomAvailable = "SELECT FROM rooms WHERE rentalstatus='vacant'";
+  $check = mysqli_query($conn, $roomAvailable);
 
-    if (mysqli_query($conn, $query)) {
-       echo "Tenant addition requested. Wait for admin approval!";
-    } else {
-       echo "Error: " . $query . "" . mysqli_error($conn);  
-    }
+   if(mysqli_num_rows($check) == 0) {
+   	echo "no rooms added for this property";
+   }else{
+	  $query = "call insertTenant('$logged_in_user_id','$firstname','$lastname','$nationalid','$contacts','$propertyno','$houseno')";
+
+	    if (mysqli_query($conn, $query)) {
+	       echo "Tenant addition requested. Wait for admin approval!";
+	    } else {
+	       echo "Error: " . $query . "" . mysqli_error($conn);  
+	    }
+	}
+
+
     $conn->close();
   }else{
     if(headers_sent()){
@@ -235,7 +245,7 @@ function drpProp(){
 	global $conn;
 
 	
-	$sql = "SELECT propertyno FROM property";
+	$sql = "SELECT propertyno FROM property WHERE approval_status='Yes'";
     $result = mysqli_query($conn,$sql);
     $menu="";
 
@@ -247,10 +257,49 @@ function drpProp(){
 
 function dropHse(){
 	global $conn;
+
+	$sql = "SELECT roomID FROM rooms WHERE rentalstatus='vacant'";
+    $result = mysqli_query($conn,$sql);
+    $menu="";
+
+    while ($row = mysqli_fetch_array($result)) {
+    	 $menu .="<option>".$row['propertyno']."</option>";
+    }
+    echo $menu; 
 }
 
 function propertyOwnersCount(){
-	global $conn;
+
+	$servername = 'localhost';
+	$username = "root";
+	$password = '';
+	$dbname = 'manajor';
+
+	// Create connection
+	$conn = new mysqli($servername, $username, $password, $dbname);
+	// Check connection
+	if ($conn->connect_error) {
+	    die("Connection failed: " . $conn->connect_error);
+	} 
+
+	if (isset($_SESSION["staffID"])) {
+		$logged_in_user_id = $_SESSION["staffID"];
+
+			$sql = "SELECT COUNT(ownerID) as landlords FROM owners WHERE staffID='$logged_in_user_id'";
+			$result = $conn->query($sql);
+
+			if ($result ->num_rows > 0) {
+			    // output data of each row
+			    while($row = $result->fetch_assoc()) {
+			        echo $row["landlords"]. "<br>";
+			    }
+			} else {
+			    echo "0 results fetched";
+			}
+			$conn->close();
+	}
+
+	/*global $conn;
 
 	if(isset($_SESSION["staffID"])){
 		$logged_in_user_id = $_SESSION["staffID"];
@@ -258,13 +307,44 @@ function propertyOwnersCount(){
 		$sql = "SELECT COUNT(ownerID) as landlords FROM owners WHERE staffID='$logged_in_user_id'";
 		$result = mysqli_query($conn,$sql);
 
-		$data = mysqli_fetch_array($result);
-		echo $data['landlords'];
-	}
+		if(mysqli_num_rows($result) > 0){
+			$data = mysqli_fetch_array($result, MYSQLI_ASSOC);
+			echo $data['landlords'];
+		}
+	}*/
 }
 
 function tenantsCount(){
-	global $conn;
+
+	$servername = 'localhost';
+	$username = "root";
+	$password = '';
+	$dbname = 'manajor';
+
+	// Create connection
+	$conn = new mysqli($servername, $username, $password, $dbname);
+	// Check connection
+	if ($conn->connect_error) {
+	    die("Connection failed: " . $conn->connect_error);
+	} 
+
+	if (isset($_SESSION["staffID"])) {
+		$logged_in_user_id = $_SESSION["staffID"];
+
+			$sql = "SELECT COUNT(id) as tenant FROM tenants WHERE staffID='$logged_in_user_id'";
+			$result = $conn->query($sql);
+
+			if ($result ->num_rows > 0) {
+			    // output data of each row
+			    while($row = $result->fetch_assoc()) {
+			        echo $row["tenant"]. "<br>";
+			    }
+			} else {
+			    echo "0 results fetched";
+			}
+			$conn->close();
+	}
+	/*global $conn;
 
 	if(isset($_SESSION["staffID"])){
 		$logged_in_user_id = $_SESSION["staffID"];
@@ -272,13 +352,43 @@ function tenantsCount(){
 		$sql = "SELECT COUNT(id) as tenant FROM tenants WHERE staffID='$logged_in_user_id'";
 		$result = mysqli_query($conn,$sql);
 
-		$data = mysqli_fetch_array($result);
-		echo $data['tenant'];
-	}
+		if ($result) {
+			$data = mysqli_fetch_array($result);
+			echo $data['tenant'];
+		}
+	}*/
 }
 
 function propertyCount(){
-	global $conn;
+		$servername = 'localhost';
+		$username = "root";
+		$password = '';
+		$dbname = 'manajor';
+
+		// Create connection
+		$conn = new mysqli($servername, $username, $password, $dbname);
+		// Check connection
+		if ($conn->connect_error) {
+		    die("Connection failed: " . $conn->connect_error);
+		} 
+
+		if (isset($_SESSION["staffID"])) {
+			$logged_in_user_id = $_SESSION["staffID"];
+
+				$sql = "SELECT COUNT(propertyno) as plot FROM property WHERE staffID='$logged_in_user_id'";
+				$result = $conn->query($sql);
+
+				if ($result ->num_rows > 0) {
+				    // output data of each row
+				    while($row = $result->fetch_assoc()) {
+				        echo $row["plot"]. "<br>";
+				    }
+				} else {
+				    echo "0 results fetched";
+				}
+				$conn->close();
+		}
+	/*global $conn;
 
 	if(isset($_SESSION["staffID"])){
 		$logged_in_user_id = $_SESSION["staffID"];
@@ -286,13 +396,43 @@ function propertyCount(){
 		$sql = "SELECT COUNT(propertyno) as plot FROM property WHERE staffID='$logged_in_user_id'";
 		$result = mysqli_query($conn,$sql);
 
-		$data = mysqli_fetch_array($result);
-		echo $data['plot'];
-	}
+		if ($result) {
+			$data = mysqli_fetch_array($result);
+			echo $data['plot'];
+		}
+	}*/
 }
 
 function vacantCount(){
-	global $conn;
+		$servername = 'localhost';
+		$username = "root";
+		$password = '';
+		$dbname = 'manajor';
+
+		// Create connection
+		$conn = new mysqli($servername, $username, $password, $dbname);
+		// Check connection
+		if ($conn->connect_error) {
+		    die("Connection failed: " . $conn->connect_error);
+		} 
+
+		if (isset($_SESSION["staffID"])) {
+			$logged_in_user_id = $_SESSION["staffID"];
+
+				$sql = "SELECT COUNT(roomID) as vacant FROM rooms WHERE staffID='$logged_in_user_id' AND rentalstatus='vacant'";
+				$result = $conn->query($sql);
+
+				if ($result ->num_rows > 0) {
+				    // output data of each row
+				    while($row = $result->fetch_assoc()) {
+				    	echo "VACANT: ".$row['vacant'];
+				    }
+				} else {
+				    echo "0 results fetched";
+				}
+				$conn->close();
+		}
+	/*global $conn;
 
 	if(isset($_SESSION["staffID"])){
 		$logged_in_user_id = $_SESSION["staffID"];
@@ -300,13 +440,43 @@ function vacantCount(){
 		$sql = "SELECT COUNT(roomID) as vacant FROM rooms WHERE staffID='$logged_in_user_id' AND rentalstatus='vacant'";
 		$result = mysqli_query($conn,$sql);
 
-		$data = mysqli_fetch_array($result);
-		echo "VACANT: ".$data['vacant'];
-	}
+		if ($result) {
+			$data = mysqli_fetch_array($result);
+			echo "VACANT: ".$data['vacant'];
+		}
+	}*/
 }
 
 function occupiedCount(){
-	global $conn;
+		$servername = 'localhost';
+		$username = "root";
+		$password = '';
+		$dbname = 'manajor';
+
+		// Create connection
+		$conn = new mysqli($servername, $username, $password, $dbname);
+		// Check connection
+		if ($conn->connect_error) {
+		    die("Connection failed: " . $conn->connect_error);
+		} 
+
+		if (isset($_SESSION["staffID"])) {
+			$logged_in_user_id = $_SESSION["staffID"];
+
+				$sql = "SELECT COUNT(roomID) as rented FROM rooms WHERE staffID='$logged_in_user_id' AND rentalstatus='occupied'";
+				$result = $conn->query($sql);
+
+				if ($result ->num_rows > 0) {
+				    // output data of each row
+				    while($row = $result->fetch_assoc()) {
+				        echo "OCCUPIED: ".$row['rented'];
+				    }
+				} else {
+				    echo "0 results fetched";
+				}
+				$conn->close();
+		}
+	/*global $conn;
 
 	if(isset($_SESSION["staffID"])){
 		$logged_in_user_id = $_SESSION["staffID"];
@@ -314,9 +484,11 @@ function occupiedCount(){
 		$sql = "SELECT COUNT(roomID) as plot FROM rooms WHERE staffID='$logged_in_user_id' AND rentalstatus='occupied'";
 		$result = mysqli_query($conn,$sql);
 
-		$data = mysqli_fetch_array($result);
-		echo "OCCUPIED: ".$data['plot'];
-	}
+		if ($result) {
+			$data = mysqli_fetch_array($result);
+			echo "OCCUPIED: ".$data['plot'];
+		}
+	}*/
 }
 
 function registerUsers(){
